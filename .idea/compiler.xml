@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="Autenticacao" />
+        <module name="gateway" />
+        <module name="Server-discovery" />
+      </profile>
+      <profile name="Annotation profile for Pagamento" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="Pagamento" />
+        <module name="Estoque" />
+        <module name="Envio" />
+        <module name="Pedido" />
+        <module name="Vendedor" />
+        <module name="Notificacao" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Autenticacao" options="-parameters" />
+      <module name="Envio" options="-parameters" />
+      <module name="Estoque" options="-parameters" />
+      <module name="Notificacao" options="-parameters" />
+      <module name="Pagamento" options="-parameters" />
+      <module name="Pedido" options="-parameters" />
+      <module name="Server-discovery" options="-parameters" />
+      <module name="Vendedor" options="-parameters" />
+      <module name="gateway" options="-parameters" />
+    </option>
+  </component>
+</project>
