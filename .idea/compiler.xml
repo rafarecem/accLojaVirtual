@@ -7,22 +7,22 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="Server-discovery" />
+        <module name="Pagamento" />
         <module name="Autenticacao" />
         <module name="gateway" />
-        <module name="Server-discovery" />
       </profile>
-      <profile name="Annotation profile for Pagamento" enabled="true">
+      <profile name="Annotation profile for Vendedor" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
-        <module name="Pagamento" />
         <module name="Estoque" />
         <module name="Envio" />
-        <module name="Pedido" />
         <module name="Vendedor" />
+        <module name="Pedido" />
         <module name="Notificacao" />
       </profile>
     </annotationProcessing>
