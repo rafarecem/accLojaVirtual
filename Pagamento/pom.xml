@@ -72,11 +72,25 @@
 			<artifactId>spring-boot-starter-artemis</artifactId> <!-- Substitua por spring-boot-starter-activemq ou outros, dependendo do seu broker -->
 		</dependency>
 
-
 		<dependency>
-			<groupId>org.springframework.jms</groupId>
-			<artifactId>spring-jms</artifactId>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.10.0</version>
+			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>5.5.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>5.5.0</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<dependencyManagement>
