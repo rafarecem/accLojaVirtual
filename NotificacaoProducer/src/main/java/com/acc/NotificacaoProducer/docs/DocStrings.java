@@ -2,6 +2,10 @@ package com.acc.NotificacaoProducer.docs;
 
 public class DocStrings {
 
+    public class Response {
+        public static final String NO_CONTENT = "204";
+    }
+
     public class ControllerDocs {
        public static final String TAG_NAME = "Notificações";
        public static final String TAG_DESC = "API para o envio de notificações";
