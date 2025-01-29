@@ -74,7 +74,7 @@ O serviço utiliza os seguintes códigos de erro padronizados:
 ## Resiliência e Fallbacks
 Esse serviço futuramente deve ter implementado mecanismos para fallback, garantindo disponibilidade e segurança mesmo em caso de falha segue algumas ideias:
 - **Cache de tokens válidos** para autenticação temporária caso o serviço principal esteja indisponível.
-- **Implementacao de segurança nos outros serviços** para assegurar que estejam seguros mesmo que este caia.
+- **Implementação de segurança nos outros serviços** para assegurar que estejam seguros mesmo que este caia.
 
 ## Tecnologias Utilizadas
 - **Spring Boot**
