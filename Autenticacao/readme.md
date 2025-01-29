@@ -79,7 +79,7 @@ Esse serviço futuramente deve ter implementado mecanismos para fallback, garant
 ## Tecnologias Utilizadas
 - **Spring Boot**
 - **JWT**
-- **OPEN-SSL**
+- **OPEN-SSL (geração das chaves de segurança)**
 - **MY-SQL**
 - **Eureka**
 - **Swagger**
