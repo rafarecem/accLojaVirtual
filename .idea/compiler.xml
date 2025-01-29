@@ -7,18 +7,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-
-        <module name="Server-discovery" />
-        <module name="Pagamento" />
-        <module name="Autenticacao" />
-        <module name="gateway" />
-
         <module name="NotificacaoProducer" />
+        <module name="Pagamento" />
         <module name="Autenticacao" />
         <module name="gateway" />
         <module name="Server-discovery" />
         <module name="Notificacao" />
-
       </profile>
       <profile name="Annotation profile for Vendedor" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -31,9 +25,6 @@
         <module name="Envio" />
         <module name="Vendedor" />
         <module name="Pedido" />
-        <module name="Notificacao" />
-
-
       </profile>
     </annotationProcessing>
   </component>

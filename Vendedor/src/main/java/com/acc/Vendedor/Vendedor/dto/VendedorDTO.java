@@ -6,7 +6,6 @@ public class VendedorDTO {
     private String nomeVendedor;
     private String setorVendedor;
 
-
     public int getIdVendedor() {
         return idVendedor;
     }
