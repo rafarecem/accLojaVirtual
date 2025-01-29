@@ -1,7 +1,7 @@
 # Serviço de Autenticação
 
 ## Visão Geral
-Este microsserviço é responsável pela autenticação de usuários utilizando JSON Web Token (JWT). Ele centraliza a gestão de autenticação para outros microsserviços dentro da arquitetura e implementa sistemas de fallback para garantir disponibilidade e segurança em caso de falhas.
+Este microsserviço é responsável pela autenticação de usuários utilizando JSON Web Token (JWT). Ele centraliza a gestão de autenticação para outros microsserviços dentro da arquitetura.
 
 ## Endpoints Disponíveis
 ### 1. Login
