@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
-public class RabbitMQConfig {
+public class RabbitMQConfigProduto {
     public static final String FILA_ESTOQUE = "filaEstoque";
     public static final String EXCHANGE_PRODUTOS = "exchangeProdutos";
 

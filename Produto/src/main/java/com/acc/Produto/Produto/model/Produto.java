@@ -52,8 +52,13 @@ public class Produto {
         this.descricao = descricao;
     }
 
+    public Produto(Long id, String descricao, BigDecimal preco, LocalDateTime dataHoraSaida) {
+        this.id = id;
+        this.descricao = descricao;
+        this.preco = preco;
+        this.dataHoraSaida = dataHoraSaida;
+    }
 
-
-
-
+    public Produto() {
+    }
 }
