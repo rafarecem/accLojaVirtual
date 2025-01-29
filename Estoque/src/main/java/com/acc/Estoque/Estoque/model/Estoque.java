@@ -12,13 +12,10 @@ public class Estoque {
     private Long id;
 
     @Column(nullable = false)
-    private String nomeProduto;
+    private Long produtoId;
 
     @Column(nullable = false)
-    private Integer quantidadeDisponivel;
-
-    @Column(nullable = false)
-    private Integer quantidadeMinima;
+    private int quantidadeDisponivel;
 
     @Column(nullable = false)
     private LocalDateTime dataAtualizacao;
@@ -32,28 +29,12 @@ public class Estoque {
         this.id = id;
     }
 
-    public String getNomeProduto() {
-        return nomeProduto;
-    }
-
-    public void setNomeProduto(String nomeProduto) {
-        this.nomeProduto = nomeProduto;
-    }
-
-    public Integer getQuantidadeDisponivel() {
+    public int getQuantidadeDisponivel() {
         return quantidadeDisponivel;
     }
 
-    public void setQuantidadeDisponivel(Integer quantidadeDisponivel) {
+    public void setQuantidadeDisponivel(int quantidadeDisponivel) {
         this.quantidadeDisponivel = quantidadeDisponivel;
-    }
-
-    public Integer getQuantidadeMinima() {
-        return quantidadeMinima;
-    }
-
-    public void setQuantidadeMinima(Integer quantidadeMinima) {
-        this.quantidadeMinima = quantidadeMinima;
     }
 
     public LocalDateTime getDataAtualizacao() {
@@ -62,5 +43,13 @@ public class Estoque {
 
     public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
         this.dataAtualizacao = dataAtualizacao;
+    }
+
+    public Long getProdutoId() {
+        return produtoId;
+    }
+
+    public void setProdutoId(Long produtoId) {
+        this.produtoId = produtoId;
     }
 }

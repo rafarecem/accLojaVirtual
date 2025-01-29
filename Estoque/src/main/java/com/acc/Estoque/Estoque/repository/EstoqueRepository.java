@@ -4,7 +4,9 @@ import com.acc.Estoque.Estoque.model.Estoque;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
-    Estoque findByNomeProduto(String nomeProduto);
+    Optional<Estoque> findByProdutoId(Long produtoId);
 }
