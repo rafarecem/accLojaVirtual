@@ -32,15 +32,12 @@ Este endpoint atualiza a quantidade de um produto no estoque. A operação pode 
 "quantidadeAtualizada": 15
 }
 ```
-
-
-```
-## Resiliência e Fallbacks
+##Resiliência e Fallbacks
 Este serviço **não requer autenticação direta.** No entanto, outros microsserviços que interagem com ele podem precisar validar tokens JWT para garantir a segurança da comunicação.
 
 Para garantir resiliência, o serviço utiliza mensagens assíncronas via RabbitMQ para comunicação com outros microsserviços, o que ajuda a manter o sistema funcional mesmo em caso de falha em algum dos microsserviços dependentes.
 
-## Tecnologias Utilizadas
+##Tecnologias Utilizadas
 - **Spring Boot**
 - **JWT**
 - **MY-SQL**
