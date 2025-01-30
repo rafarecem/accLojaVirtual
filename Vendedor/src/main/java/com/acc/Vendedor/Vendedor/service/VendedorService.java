@@ -1,60 +1,68 @@
 package com.acc.Vendedor.Vendedor.service;
 
-import com.acc.Vendedor.Vendedor.exception.InvalidVendedorException;
-import com.acc.Vendedor.Vendedor.exception.VendedorNotFoundException;
+import com.acc.Vendedor.Vendedor.dto.VendedorRequest;
+import com.acc.Vendedor.Vendedor.dto.VendedorResponse;
+import com.acc.Vendedor.Vendedor.exception.VendedorNaoEncontradoException;
 import com.acc.Vendedor.Vendedor.model.Vendedor;
-import com.acc.Vendedor.Vendedor.dto.VendedorDTO;
 import com.acc.Vendedor.Vendedor.repository.VendedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
+
 
 @Service
 public class VendedorService {
 
+
     @Autowired
     private VendedorRepository vendedorRepository;
 
-    public VendedorDTO saveVendedor(VendedorDTO vendedorDTO) {
+    public VendedorResponse criarVendedor(VendedorRequest vendedorRequest) {
         Vendedor vendedor = new Vendedor();
-        vendedor.setNomeVendedor(vendedorDTO.getNomeVendedor());
-        vendedor.setSetorVendedor(vendedorDTO.getSetorVendedor());
+        vendedor.setVendedorNome(vendedorRequest.getVendedorNome());
+        vendedor.setVendedorSetor(vendedorRequest.getVendedorSetor());
+        vendedor.setVendedorNome(vendedorRequest.getVendedorNome());
+        vendedor.setSetorVendedor(vendedorRequest.getSetorVendedor());
 
         Vendedor savedVendedor = vendedorRepository.save(vendedor);
-        vendedorDTO.setIdVendedor(savedVendedor.getIdVendedor());
-        return vendedorDTO;
+
+        return mapToResponse(savedVendedor);
     }
 
-    public List<Vendedor> getAllVendedores() {
-        return vendedorRepository.findAll();
+    public VendedorResponse obterVendedorPorId(Integer idVendedor) {
+        Vendedor vendedor = vendedorRepository.findById(idVendedor)
+                .orElseThrow(() -> new VendedorNaoEncontradoException(idVendedor));  // Lançando a exceção personalizada
+        return mapToResponse(vendedor);
     }
 
-    public VendedorDTO getVendedorById(int id) {
-        Optional<Vendedor> vendedorOpt = vendedorRepository.findById(id);
-        if (vendedorOpt.isPresent()) {
-            Vendedor vendedor = vendedorOpt.get();
-            VendedorDTO vendedorDTO = new VendedorDTO();
-            vendedorDTO.setIdVendedor(vendedor.getIdVendedor());
-            vendedorDTO.setNomeVendedor(vendedor.getNomeVendedor());
-            vendedorDTO.setSetorVendedor(vendedor.getSetorVendedor());
-            return vendedorDTO;
+    private VendedorResponse mapToResponse(Vendedor vendedor) {
+        VendedorResponse vendedorResponse = new VendedorResponse();
+        vendedorResponse.setIdVendedor(vendedor.getId());
+        vendedorResponse.setVendedorNome(vendedor.getVendedorNome());
+        vendedorResponse.setVendedorSetor(vendedor.getVendedorSetor());
+        vendedorResponse.setNomeVendedor(vendedor.getVendedorNome());
+        vendedorResponse.setSetorVendedor(vendedor.getSetorVendedor());
+        return vendedorResponse;
+    }
+    public void deletarVendedor(Integer idVendedor) {
+        if (!vendedorRepository.existsById(idVendedor)) {
+            throw new RuntimeException("Vendedor não encontrado");
         }
-        throw new VendedorNotFoundException(id);
+        vendedorRepository.deleteById(idVendedor);
     }
 
-    public void deleteVendedor(int id) {
-        vendedorRepository.deleteById(id);
+    public VendedorResponse atualizarVendedor(Integer idVendedor, VendedorRequest vendedorRequest) {
+        Vendedor vendedorExistente = vendedorRepository.findById(idVendedor)
+                .orElseThrow(() -> new RuntimeException("Vendedor não encontrado"));
+
+        vendedorExistente.setVendedorNome(vendedorRequest.getVendedorNome());
+        vendedorExistente.setVendedorSetor(vendedorRequest.getVendedorSetor());
+        vendedorExistente.setSetorVendedor(vendedorRequest.getSetorVendedor());
+
+        Vendedor updatedVendedor = vendedorRepository.save(vendedorExistente);
+        return mapToResponse(updatedVendedor);
     }
 
-    private void validateVendedor(VendedorDTO vendedorDTO) {
-        if (vendedorDTO.getNomeVendedor() == null || vendedorDTO.getNomeVendedor().isBlank()) {
-            throw new InvalidVendedorException("O nome do vendedor é obrigatório.");
-        }
 
-        if (vendedorDTO.getSetorVendedor() == null || vendedorDTO.getSetorVendedor().isBlank()) {
-            throw new InvalidVendedorException("O setor do vendedor é obrigatório.");
-        }
-    }
 }

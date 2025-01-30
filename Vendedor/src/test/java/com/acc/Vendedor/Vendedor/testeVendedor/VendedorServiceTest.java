@@ -1,23 +1,20 @@
-package com.acc.Vendedor.Vendedor.testeVendedor;
+package com.acc.Vendedor.Vendedor.service;
 
-import com.acc.Vendedor.Vendedor.dto.VendedorDTO;
-import com.acc.Vendedor.Vendedor.exception.InvalidVendedorException;
-import com.acc.Vendedor.Vendedor.exception.VendedorNotFoundException;
+import com.acc.Vendedor.Vendedor.dto.VendedorRequest;
+import com.acc.Vendedor.Vendedor.dto.VendedorResponse;
+import com.acc.Vendedor.Vendedor.exception.VendedorNaoEncontradoException;
 import com.acc.Vendedor.Vendedor.model.Vendedor;
 import com.acc.Vendedor.Vendedor.repository.VendedorRepository;
-import com.acc.Vendedor.Vendedor.service.VendedorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class VendedorServiceTest {
 
@@ -27,95 +24,100 @@ class VendedorServiceTest {
     @InjectMocks
     private VendedorService vendedorService;
 
+    private Vendedor vendedor;
+    private VendedorRequest vendedorRequest;
+    private VendedorResponse vendedorResponse;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        vendedor = new Vendedor();
+        vendedor.setId(1);
+        vendedor.setVendedorNome("João");
+        vendedor.setVendedorSetor("Vendas");
+        vendedor.setSetorVendedor("A");
+
+        vendedorRequest = new VendedorRequest();
+        vendedorRequest.setVendedorNome("João");
+        vendedorRequest.setVendedorSetor("Vendas");
+        vendedorRequest.setSetorVendedor("A");
+
+        vendedorResponse = new VendedorResponse();
+        vendedorResponse.setIdVendedor(1);
+        vendedorResponse.setVendedorNome("João");
+        vendedorResponse.setVendedorSetor("Vendas");
+        vendedorResponse.setSetorVendedor("A");
     }
 
     @Test
-    void testSaveVendedor_Success() {
-        VendedorDTO vendedorDTO = new VendedorDTO();
-        vendedorDTO.setNomeVendedor("João");
-        vendedorDTO.setSetorVendedor("Comercial");
+    void testCriarVendedor() {
+        // Mockando a resposta do repositório
+        Mockito.when(vendedorRepository.save(Mockito.any(Vendedor.class))).thenReturn(vendedor);
 
-        Vendedor vendedor = new Vendedor();
-        vendedor.setNomeVendedor("João");
-        vendedor.setSetorVendedor("Comercial");
+        VendedorResponse response = vendedorService.criarVendedor(vendedorRequest);
 
-        Vendedor savedVendedor = new Vendedor();
-        savedVendedor.setIdVendedor(1);
-        savedVendedor.setNomeVendedor("João");
-        savedVendedor.setSetorVendedor("Comercial");
-
-        when(vendedorRepository.save(any(Vendedor.class))).thenReturn(savedVendedor);
-
-        VendedorDTO result = vendedorService.saveVendedor(vendedorDTO);
-
-        assertNotNull(result);
-        assertEquals(1, result.getIdVendedor());
-        assertEquals("João", result.getNomeVendedor()); // Corrigido
-        assertEquals("Comercial", result.getSetorVendedor());
-
-        verify(vendedorRepository, times(1)).save(any(Vendedor.class));
+        assertNotNull(response);
+        assertEquals("João", response.getVendedorNome());
+        assertEquals("Vendas", response.getVendedorSetor());
     }
 
     @Test
-    void testGetAllVendedores() {
-        Vendedor vendedor1 = new Vendedor();
-        vendedor1.setIdVendedor(1);
-        vendedor1.setNomeVendedor("João");
-        vendedor1.setSetorVendedor("Comercial");
+    void testObterVendedorPorId() {
+        Mockito.when(vendedorRepository.findById(1)).thenReturn(Optional.of(vendedor));
 
-        Vendedor vendedor2 = new Vendedor();
-        vendedor2.setIdVendedor(2);
-        vendedor2.setNomeVendedor("Maria");
-        vendedor2.setSetorVendedor("Financeiro");
+        VendedorResponse response = vendedorService.obterVendedorPorId(1);
 
-        when(vendedorRepository.findAll()).thenReturn(Arrays.asList(vendedor1, vendedor2));
-
-        List<Vendedor> result = vendedorService.getAllVendedores();
-
-        assertNotNull(result);
-        assertEquals(2, result.size());
-
-        verify(vendedorRepository, times(1)).findAll();
+        assertNotNull(response);
+        assertEquals(1, response.getIdVendedor());
+        assertEquals("João", response.getVendedorNome());
     }
 
     @Test
-    void testGetVendedorById_Success() {
-        Vendedor vendedor = new Vendedor();
-        vendedor.setIdVendedor(1);
-        vendedor.setNomeVendedor("Patricia");
-        vendedor.setSetorVendedor("Comercial");
+    void testObterVendedorPorId_VendedorNaoEncontrado() {
+        Mockito.when(vendedorRepository.findById(1)).thenReturn(Optional.empty());
 
-        when(vendedorRepository.findById(1)).thenReturn(Optional.of(vendedor));
-
-        VendedorDTO result = vendedorService.getVendedorById(1);
-
-        assertNotNull(result);
-        assertEquals(1, result.getIdVendedor());
-        assertEquals("Patricia", result.getNomeVendedor());
-        assertEquals("Comercial", result.getSetorVendedor());
-
-        verify(vendedorRepository, times(1)).findById(1);
+        assertThrows(VendedorNaoEncontradoException.class, () -> {
+            vendedorService.obterVendedorPorId(1);
+        });
     }
 
     @Test
-    void testGetVendedorById_NotFound() {
-        when(vendedorRepository.findById(1)).thenReturn(Optional.empty());
+    void testDeletarVendedor() {
 
-        assertThrows(VendedorNotFoundException.class, () -> vendedorService.getVendedorById(1));
+        Mockito.when(vendedorRepository.existsById(1)).thenReturn(true);
 
-        verify(vendedorRepository, times(1)).findById(1);
+        vendedorService.deletarVendedor(1);
+
+        Mockito.verify(vendedorRepository, Mockito.times(1)).deleteById(1);
     }
 
     @Test
-    void testDeleteVendedor() {
-        doNothing().when(vendedorRepository).deleteById(1);
+    void testDeletarVendedor_VendedorNaoEncontrado() {
+        Mockito.when(vendedorRepository.existsById(1)).thenReturn(false);
 
-        vendedorService.deleteVendedor(1);
-
-        verify(vendedorRepository, times(1)).deleteById(1);
+        assertThrows(RuntimeException.class, () -> {
+            vendedorService.deletarVendedor(1);
+        });
     }
 
+    @Test
+    void testAtualizarVendedor() {
+        Mockito.when(vendedorRepository.findById(1)).thenReturn(Optional.of(vendedor));
+        Mockito.when(vendedorRepository.save(Mockito.any(Vendedor.class))).thenReturn(vendedor);
+
+        VendedorResponse response = vendedorService.atualizarVendedor(1, vendedorRequest);
+
+        assertNotNull(response);
+        assertEquals("João", response.getVendedorNome());
+    }
+
+    @Test
+    void testAtualizarVendedor_VendedorNaoEncontrado() {
+        Mockito.when(vendedorRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> {
+            vendedorService.atualizarVendedor(1, vendedorRequest);
+        });
+    }
 }
