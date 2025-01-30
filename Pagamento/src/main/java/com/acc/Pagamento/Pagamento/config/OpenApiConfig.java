@@ -1,4 +1,5 @@
-package com.acc.Vendedor.Vendedor.config;
+package com.acc.Pagamento.Pagamento.config;
+
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -12,7 +13,6 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
 
-                .info(new Info().title("Vendedor").version("1.0"));
+                .info(new Info().title("Pagamento").version("1.0"));
     }
 }
-

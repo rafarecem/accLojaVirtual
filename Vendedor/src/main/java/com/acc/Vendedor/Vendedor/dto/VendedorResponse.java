@@ -1,41 +1,19 @@
-package com.acc.Vendedor.Vendedor.model;
+package com.acc.Vendedor.Vendedor.dto;
 
-import jakarta.persistence.*;
+public class VendedorResponse {
 
-import java.io.Serializable;
-
-@Entity
-@Table(name = "vendedor")
-public class Vendedor implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column
-    private Integer id;
-
-    @Column(length = 45)
+    private Integer idVendedor;
     private String vendedorNome;
-
-    @Column( length = 45)
     private String vendedorSetor;
-
-    @Column(length = 255)
     private String nomeVendedor;
-
-    @Column( length = 255)
     private String setorVendedor;
-    public Vendedor() {
+
+    public Integer getIdVendedor() {
+        return idVendedor;
     }
 
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
+    public void setIdVendedor(Integer idVendedor) {
+        this.idVendedor = idVendedor;
     }
 
     public String getVendedorNome() {
