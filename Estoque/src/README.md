@@ -32,6 +32,7 @@ Este endpoint atualiza a quantidade de um produto no estoque. A operação pode 
 "quantidadeAtualizada": 15
 }
 ```
+
 ##Resiliência e Fallbacks
 Este serviço **não requer autenticação direta.** No entanto, outros microsserviços que interagem com ele podem precisar validar tokens JWT para garantir a segurança da comunicação.
 
