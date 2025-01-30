@@ -1,23 +1,17 @@
-package com.acc.Produto.Produto.model;
+package com.acc.Estoque.Estoque.dto;
 
-import jakarta.persistence.*;
+import lombok.Data;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
-@Entity
-@Table(name = "produto")
-public class Produto {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Data
+public class ProdutoMessageDTO implements Serializable {
     private Long id;
-    @Column(nullable = false)
     private String descricao;
-    @Column(nullable = false)
     private BigDecimal preco;
-    @Column(nullable = false)
     private int quantidade;
-    @Column(nullable = false)
     private LocalDateTime dataHoraEntrada;
 
     public Long getId() {
@@ -58,16 +52,5 @@ public class Produto {
 
     public void setDataHoraEntrada(LocalDateTime dataHoraEntrada) {
         this.dataHoraEntrada = dataHoraEntrada;
-    }
-
-    public Produto(Long id, String descricao, BigDecimal preco, int quantidade, LocalDateTime dataHoraEntrada) {
-        this.id = id;
-        this.descricao = descricao;
-        this.preco = preco;
-        this.quantidade = quantidade;
-        this.dataHoraEntrada = dataHoraEntrada;
-    }
-
-    public Produto() {
     }
 }

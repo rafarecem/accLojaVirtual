@@ -13,14 +13,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 public class EstoqueControllerTest {
-
-    @Autowired
     private MockMvc mockMvc;
 
     @Mock
@@ -37,15 +38,12 @@ public class EstoqueControllerTest {
 
     @Test
     public void testBuscarEstoque_Success() throws Exception {
-        // Prepara o objeto mockado
         Estoque estoque = new Estoque();
         estoque.setProdutoId(1L);
         estoque.setQuantidadeDisponivel(100);;
 
-        // Configura o comportamento do mock
         when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
 
-        // Realiza a requisição e valida a resposta
         mockMvc.perform(get("/estoque/{produtoId}", 1L)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -55,12 +53,32 @@ public class EstoqueControllerTest {
 
     @Test
     public void testBuscarEstoque_NotFound() throws Exception {
-        // Configura o comportamento do mock para não encontrar o estoque
         when(estoqueRepository.findByProdutoId(2L)).thenReturn(Optional.empty());
 
-        // Realiza a requisição e valida a resposta
         mockMvc.perform(get("/estoque/{produtoId}", 2L)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testListarEstoque() throws Exception {
+        Estoque estoque1 = new Estoque();
+        estoque1.setProdutoId(1L);
+        estoque1.setQuantidadeDisponivel(100);
+
+        Estoque estoque2 = new Estoque();
+        estoque2.setProdutoId(2L);
+        estoque2.setQuantidadeDisponivel(50);
+
+        List<Estoque> listaEstoque = Arrays.asList(estoque1, estoque2);
+
+        when(estoqueRepository.findAll()).thenReturn(listaEstoque);
+
+        mockMvc.perform(get("/estoque")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))  // Verifica o tamanho da lista
+                .andExpect(jsonPath("$[0].produtoId").value(1L))  // Verifica o primeiro item
+                .andExpect(jsonPath("$[1].produtoId").value(2L));  // Verifica o segundo item
     }
 }

@@ -1,13 +1,16 @@
 package com.acc.Estoque.Estoque.dto;
+import lombok.Data;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
-public class EstoqueDTO {
+@Data
+public class EstoqueDTO implements Serializable {
     private Long produtoId;
     private String nomeProduto;
     private Integer quantidadeDisponivel;
     private Integer quantidadeMinima;
     private LocalDateTime dataAtualizacao;
 
-    // Getters e Setters
     public Long getProdutoId() {
         return produtoId;
     }

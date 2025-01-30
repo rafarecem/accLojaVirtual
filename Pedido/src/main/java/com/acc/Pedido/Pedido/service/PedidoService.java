@@ -1,134 +1,100 @@
 package com.acc.Pedido.Pedido.service;
 
-import com.acc.Pedido.Pedido.dto.PedidoDTO;
-import com.acc.Pedido.Pedido.dto.PedidoHistoricoStatusDTO;
+import com.acc.Pedido.Pedido.config.RabbitMQConfigPedido;
+import com.acc.Pedido.Pedido.dto.PedidoMessageDTO;
+import com.acc.Pedido.Pedido.model.HistoricoStatus;
 import com.acc.Pedido.Pedido.model.Pedido;
-import com.acc.Pedido.Pedido.model.PedidoHistoricoStatus;
 import com.acc.Pedido.Pedido.Enum.StatusPedido;
-import com.acc.Pedido.Pedido.repository.PedidoHistoricoStatusRepository;
+import com.acc.Pedido.Pedido.repository.HistoricoStatusRepository;
 import com.acc.Pedido.Pedido.repository.PedidoRepository;
 
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
+
 import java.time.LocalDateTime;
+import java.util.List;
+
 
 @Service
 public class PedidoService {
 
     @Autowired
     private PedidoRepository pedidoRepository;
-    @Autowired
-    private PedidoHistoricoStatusRepository historicoRepository;
+
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public PedidoDTO criarPedido(PedidoDTO pedidoDTO) {
-        // Validações existentes
-        if (pedidoDTO.getPedidoDescricao() == null || pedidoDTO.getPedidoDescricao().isEmpty()) {
-            throw new IllegalArgumentException("A descrição do pedido não pode estar vazia.");
+    @Autowired
+    private HistoricoStatusRepository historicoStatusRepository;
+
+    public Pedido criarPedido(Pedido pedido) {
+        pedido.setDataHoraPedido(LocalDateTime.now());
+        pedido.setStatus(StatusPedido.PENDENTE);
+        Pedido pedidoSalvo = pedidoRepository.save(pedido);
+        // Criar DTO para enviar ao Estoque
+        PedidoMessageDTO pedidoMessageDTO = new PedidoMessageDTO();
+        pedidoMessageDTO.setIdPedido(pedidoSalvo.getIdPedido());
+        pedidoMessageDTO.setIdProduto(pedidoSalvo.getIdProduto());
+        pedidoMessageDTO.setQuantidade(pedidoSalvo.getQuantidade());
+        pedidoMessageDTO.setIdVendedor(pedidoSalvo.getidVendedor());
+        // Enviar mensagem para a fila de pedido
+        rabbitTemplate.convertAndSend("pedidoQueue", pedidoMessageDTO);
+        return pedidoSalvo;
+    }
+
+
+    @RabbitListener(queues = "estoqueQueue")
+    public void receberRespostaEstoque(String resposta) {
+        // Supondo que a resposta seja o ID do pedido e o status
+        String[] partes = resposta.split(":");
+        Long idPedido = Long.parseLong(partes[0]);
+        String statusEstoque = partes[1];
+
+        // Buscar o pedido no banco de dados
+        Pedido pedido = pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        // Atualizar o status do pedido com base na resposta do estoque
+        if ("estoque_disponivel".equals(statusEstoque)) {
+            pedido.setStatus(StatusPedido.AGUARDANDO_PAGAMENTO);
+        } else {
+            pedido.setStatus(StatusPedido.CANCELADO);
         }
 
-        Pedido pedido = new Pedido();
-        pedido.setPedidoDescricao(pedidoDTO.getPedidoDescricao());
-        pedido.setPedidoValor(pedidoDTO.getPedidoValor());
-        pedido.setPedidoQuantidade(pedidoDTO.getPedidoQuantidade());
-        pedido.setPedidoDataHora(LocalDateTime.now());
-        pedido.setVendedor_idVendedor(pedidoDTO.getVendedor_idVendedor());
-        pedido.setProdutoNome(pedidoDTO.getPedidoDescricao());
-
-        Pedido pedidoSalvo = pedidoRepository.save(pedido);
-        criarHistoricoStatus(pedidoSalvo, StatusPedido.PENDENTE);
-
-        // Enviar mensagem simples para o estoque
-        String mensagem = pedidoSalvo.getId() + ";" +
-                pedidoSalvo.getProdutoNome() + ";" +
-                pedidoSalvo.getPedidoQuantidade();
-
-        rabbitTemplate.convertAndSend("pedido-exchange", "pedido-routing-key", mensagem);
-
-        return toDTO(pedidoSalvo);
+        pedidoRepository.save(pedido);
     }
 
-    public void criarHistoricoStatus(Pedido pedido, StatusPedido status) {
-        PedidoHistoricoStatus historico = new PedidoHistoricoStatus();
-        historico.setPedido(pedido);
-        historico.setStatus(status);
-        historico.setDataHoraStatusPedido(LocalDateTime.now());
-        historicoRepository.save(historico);
+    public List<Pedido> listarPedidos() {
+        return pedidoRepository.findAll();
     }
 
-    private void enviarParaVerificacaoEstoque(Pedido pedido) {
-        String mensagem = pedido.getId() + ";" +
-                pedido.getProdutoNome() + ";" +
-                pedido.getPedidoQuantidade();
-
-        rabbitTemplate.convertAndSend(
-                "pedido-exchange",
-                "pedido-routing-key",
-                mensagem
-        );
+    public Pedido buscarPedidoPorId(Long idPedido) {
+        return pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     }
 
-    public void atualizarStatusPedido(Long pedidoId, StatusPedido novoStatus) {
+    public void alterarStatus(Long pedidoId, StatusPedido novoStatus) {
         Pedido pedido = pedidoRepository.findById(pedidoId)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
-        criarHistoricoStatus(pedido, novoStatus);
+        // Adiciona o histórico de status
+        HistoricoStatus historico = new HistoricoStatus();
+        historico.setPedido(pedido);
+        historico.setStatus(novoStatus);
+        historico.setDataAlteracao(LocalDateTime.now());
+
+        historicoStatusRepository.save(historico);
+
+        // Altera o status do pedido
+        pedido.setStatus(novoStatus);
+        pedidoRepository.save(pedido);
     }
 
-    public StatusPedido buscarStatusAtualPedido(Long pedidoId) {
-        return historicoRepository
-                .findFirstByPedidoIdOrderByDataHoraStatusPedidoDesc(pedidoId)
-                .map(PedidoHistoricoStatus::getStatus)
-                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
-    }
-
-
-
-
-    public PedidoDTO buscarPedido(Long id) {
-        Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new RuntimeException("Pedido não encontrado."));
-        return toDTO(pedido);
-    }
-
-    public PedidoDTO editarPedido(Long id, PedidoDTO pedidoDTO) {
-        Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new RuntimeException("Pedido não encontrado."));
-
-        pedido.setPedidoDescricao(pedidoDTO.getPedidoDescricao());
-        pedido.setPedidoValor(pedidoDTO.getPedidoValor());
-        pedido.setPedidoQuantidade(pedidoDTO.getPedidoQuantidade());
-        pedido.setVendedor_idVendedor(pedidoDTO.getVendedor_idVendedor());
-        pedido.setPedidoDataHora(LocalDateTime.now());
-
-        Pedido pedidoAtualizado = pedidoRepository.save(pedido);
-        return toDTO(pedidoAtualizado);
-    }
-
-    public void deletarPedido(Long id) {
-        Pedido pedido = pedidoRepository.findById(id).orElseThrow(() -> new RuntimeException("Pedido não encontrado."));
-        pedidoRepository.delete(pedido);
-    }
-
-
-    private PedidoDTO toDTO(Pedido pedido) {
-        PedidoDTO dto = new PedidoDTO();
-        dto.setIdPedido(pedido.getId());
-        dto.setPedidoDescricao(pedido.getPedidoDescricao());
-        dto.setPedidoValor(pedido.getPedidoValor());
-        dto.setPedidoQuantidade(pedido.getPedidoQuantidade());
-        dto.setPedidoDataHora(pedido.getPedidoDataHora());
-        dto.setVendedor_idVendedor(pedido.getVendedor_idVendedor());
-        return dto;
-    }
-
-    private PedidoHistoricoStatusDTO toHistoricoDTO(PedidoHistoricoStatus historico) {
-        PedidoHistoricoStatusDTO dto = new PedidoHistoricoStatusDTO();
-        dto.setId(historico.getId());
-        dto.setPedidoId(historico.getPedido().getId());
-        dto.setStatusDescricao(historico.getStatus().name());
-        dto.setDataHoraStatusPedido(historico.getDataHoraStatusPedido());
-        return dto;
+    public List<HistoricoStatus> obterHistoricoStatus(Long pedidoId) {
+        return historicoStatusRepository.findByPedido_IdPedido(pedidoId);
     }
 }

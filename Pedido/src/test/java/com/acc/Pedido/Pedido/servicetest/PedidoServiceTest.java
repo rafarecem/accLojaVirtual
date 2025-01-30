@@ -1,194 +1,177 @@
 package com.acc.Pedido.Pedido.servicetest;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
+
 import com.acc.Pedido.Pedido.Enum.StatusPedido;
-import com.acc.Pedido.Pedido.dto.PedidoDTO;
+import com.acc.Pedido.Pedido.dto.PedidoMessageDTO;
+import com.acc.Pedido.Pedido.model.HistoricoStatus;
 import com.acc.Pedido.Pedido.model.Pedido;
-import com.acc.Pedido.Pedido.model.PedidoHistoricoStatus;
-import com.acc.Pedido.Pedido.repository.PedidoHistoricoStatusRepository;
+import com.acc.Pedido.Pedido.repository.HistoricoStatusRepository;
 import com.acc.Pedido.Pedido.repository.PedidoRepository;
 import com.acc.Pedido.Pedido.service.PedidoService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
+import static org.mockito.Mockito.verify;
+import org.springframework.beans.factory.annotation.Autowired;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
+import java.util.Arrays;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 public class PedidoServiceTest {
-    @InjectMocks
-    private PedidoService pedidoService;
-
     @Mock
     private PedidoRepository pedidoRepository;
 
     @Mock
-    private PedidoHistoricoStatusRepository historicoRepository;
-
-    @Mock
     private RabbitTemplate rabbitTemplate;
 
-    @Test
-    void criarPedido_DeveSalvarPedidoEEnviarMensagem() {
-        PedidoDTO pedidoDTO = new PedidoDTO();
-        pedidoDTO.setPedidoDescricao("Produto Teste");
-        pedidoDTO.setPedidoValor(100.0);
-        pedidoDTO.setPedidoQuantidade(2);
-        pedidoDTO.setVendedor_idVendedor(1L);
+    @Mock
+    private HistoricoStatusRepository historicoStatusRepository;
 
-        Pedido pedido = new Pedido();
-        pedido.setId(1L); // Certifique-se que o ID está correto
-        pedido.setPedidoDescricao("Produto Teste");
-        pedido.setProdutoNome("Produto Teste"); // Adicione o valor corretamente
-        pedido.setPedidoValor(100.0);
-        pedido.setPedidoQuantidade(2);
-        pedido.setVendedor_idVendedor(1L);
+    @InjectMocks
+    private PedidoService pedidoService;
 
-        Mockito.when(pedidoRepository.save(Mockito.any(Pedido.class))).thenAnswer(invocation -> {
-            Pedido p = invocation.getArgument(0);
-            p.setId(1L); // Simula o comportamento de salvar e gerar ID
-            return p;
-        });
+    private Pedido pedido;
 
-        // Act
-        PedidoDTO resultado = pedidoService.criarPedido(pedidoDTO);
-
-        // Assert
-        Assertions.assertNotNull(resultado);
-        Assertions.assertEquals("Produto Teste", resultado.getPedidoDescricao());
-        Assertions.assertEquals(100.0, resultado.getPedidoValor());
-        Assertions.assertEquals(2, resultado.getPedidoQuantidade());
-
-        // Verifica se o pedido foi salvo corretamente
-        Mockito.verify(pedidoRepository, Mockito.times(1)).save(Mockito.any(Pedido.class));
-
-        // Verifica se o histórico foi salvo corretamente
-        Mockito.verify(historicoRepository, Mockito.times(1)).save(Mockito.any(PedidoHistoricoStatus.class));
-
-        // Verifica se a mensagem foi enviada para RabbitMQ com a string esperada
-        Mockito.verify(rabbitTemplate, Mockito.times(1))
-                .convertAndSend("pedido-exchange", "pedido-routing-key", "1;Produto Teste;2");
+    @BeforeEach
+    public void setUp() {
+        pedido = new Pedido();
+        pedido.setidPedido(1L);
+        pedido.setIdProduto(2L);
+        pedido.setQuantidade(3);
+        pedido.setStatus(StatusPedido.PENDENTE);
+        pedido.setDataHoraPedido(LocalDateTime.now());
     }
 
+    @Test
+    public void criarPedidoTest() {
+        // Arrange
+        when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
+
+        PedidoMessageDTO pedidoMessageDTO = new PedidoMessageDTO();
+        pedidoMessageDTO.setIdPedido(pedido.getIdPedido());
+        pedidoMessageDTO.setIdProduto(pedido.getIdProduto());
+        pedidoMessageDTO.setQuantidade(pedido.getQuantidade());
+        pedidoMessageDTO.setIdVendedor(pedido.getidVendedor());
+
+        // Act
+        Pedido pedidoSalvo = pedidoService.criarPedido(pedido);
+
+        // Assert
+        assertNotNull(pedidoSalvo);
+        assertEquals(StatusPedido.PENDENTE, pedidoSalvo.getStatus());
+        verify(rabbitTemplate, times(1)).convertAndSend(eq("pedidoQueue"), any(PedidoMessageDTO.class));
+    }
 
     @Test
-    void criarPedido_DeveLancarExcecao_SeDescricaoEstiverVazia() {
+    public void receberRespostaEstoqueTest_estoqueDisponivel() {
         // Arrange
-        PedidoDTO pedidoDTO = new PedidoDTO();
-        pedidoDTO.setPedidoDescricao("");
-        pedidoDTO.setPedidoQuantidade(1);
+        Pedido pedido = new Pedido();
+        pedido.setidPedido(1L);
+        pedido.setStatus(StatusPedido.PENDENTE);
+        when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+        // Act
+        pedidoService.receberRespostaEstoque("1:estoque_disponivel");
+
+        // Assert
+        assertEquals(StatusPedido.AGUARDANDO_PAGAMENTO, pedido.getStatus());
+        verify(pedidoRepository, times(1)).save(pedido);
+    }
+
+    @Test
+    public void receberRespostaEstoqueTest_estoqueIndisponivel() {
+        // Arrange
+        Pedido pedido = new Pedido();
+        pedido.setidPedido(1L);
+        pedido.setStatus(StatusPedido.PENDENTE);
+        when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+        // Act
+        pedidoService.receberRespostaEstoque("1:estoque_indisponivel");
+
+        // Assert
+        assertEquals(StatusPedido.CANCELADO, pedido.getStatus());
+        verify(pedidoRepository, times(1)).save(pedido);
+    }
+
+    @Test
+    public void listarPedidosTest() {
+        // Arrange
+        when(pedidoRepository.findAll()).thenReturn(Arrays.asList(pedido));
+
+        // Act
+        List<Pedido> pedidos = pedidoService.listarPedidos();
+
+        // Assert
+        assertFalse(pedidos.isEmpty());
+        assertEquals(1, pedidos.size());
+    }
+
+    @Test
+    public void buscarPedidoPorIdTest() {
+        // Arrange
+        when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+
+        // Act
+        Pedido resultado = pedidoService.buscarPedidoPorId(1L);
+
+        // Assert
+        assertNotNull(resultado);
+        assertEquals(1L, resultado.getIdPedido());
+    }
+
+    @Test
+    public void buscarPedidoPorIdTest_NotFound() {
+        // Arrange
+        when(pedidoRepository.findById(1L)).thenReturn(Optional.empty());
 
         // Act & Assert
-        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            pedidoService.criarPedido(pedidoDTO);
-        });
-
-        Assertions.assertEquals("A descrição do pedido não pode estar vazia.", exception.getMessage());
-        Mockito.verifyNoInteractions(pedidoRepository, historicoRepository, rabbitTemplate);
+        assertThrows(RuntimeException.class, () -> pedidoService.buscarPedidoPorId(1L));
     }
 
     @Test
-    void atualizarStatusPedido_DeveAtualizarStatus() {
+    public void alterarStatusTest() {
         // Arrange
         Pedido pedido = new Pedido();
-        pedido.setId(1L);
-
-        Mockito.when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
-
-        // Act
-        pedidoService.atualizarStatusPedido(1L, StatusPedido.CONFIRMADO);
-
-        // Assert
-        Mockito.verify(pedidoRepository, Mockito.times(1)).findById(1L);
-        Mockito.verify(historicoRepository, Mockito.times(1)).save(Mockito.any(PedidoHistoricoStatus.class));
-    }
-
-    @Test
-    void buscarStatusAtualPedido_DeveRetornarStatusAtual_SeEncontrado() {
-        // Arrange
-        PedidoHistoricoStatus historico = new PedidoHistoricoStatus();
-        historico.setStatus(StatusPedido.CONFIRMADO);
-
-        Mockito.when(historicoRepository.findFirstByPedidoIdOrderByDataHoraStatusPedidoDesc(1L))
-                .thenReturn(Optional.of(historico));
+        pedido.setidPedido(1L);
+        pedido.setStatus(StatusPedido.PENDENTE);
+        when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
 
         // Act
-        StatusPedido resultado = pedidoService.buscarStatusAtualPedido(1L);
+        pedidoService.alterarStatus(1L, StatusPedido.AGUARDANDO_PAGAMENTO);
 
         // Assert
-        Assertions.assertNotNull(resultado);
-        Assertions.assertEquals(StatusPedido.CONFIRMADO, resultado);
-
-        Mockito.verify(historicoRepository, Mockito.times(1))
-                .findFirstByPedidoIdOrderByDataHoraStatusPedidoDesc(1L);
+        assertEquals(StatusPedido.AGUARDANDO_PAGAMENTO, pedido.getStatus());
+        verify(historicoStatusRepository, times(1)).save(any(HistoricoStatus.class));
+        verify(pedidoRepository, times(1)).save(pedido);
     }
 
     @Test
-    void buscarStatusAtualPedido_DeveLancarExcecao_SeNaoEncontrado() {
+    public void obterHistoricoStatusTest() {
         // Arrange
-        Mockito.when(historicoRepository.findFirstByPedidoIdOrderByDataHoraStatusPedidoDesc(1L))
-                .thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            pedidoService.buscarStatusAtualPedido(1L);
-        });
-
-        Assertions.assertEquals("Pedido não encontrado", exception.getMessage());
-        Mockito.verify(historicoRepository, Mockito.times(1))
-                .findFirstByPedidoIdOrderByDataHoraStatusPedidoDesc(1L);
-    }
-
-    @Test
-    void buscarPedido_DeveRetornarPedidoDTO_SeEncontrado() {
-        // Arrange
-        Pedido pedido = new Pedido();
-        pedido.setId(1L);
-        pedido.setPedidoDescricao("Produto Teste");
-
-        Mockito.when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
+        HistoricoStatus historicoStatus = new HistoricoStatus();
+        historicoStatus.setStatus(StatusPedido.PENDENTE);
+        historicoStatus.setPedido(pedido);
+        when(historicoStatusRepository.findByPedido_IdPedido(1L)).thenReturn(Arrays.asList(historicoStatus));
 
         // Act
-        PedidoDTO resultado = pedidoService.buscarPedido(1L);
+        List<HistoricoStatus> historico = pedidoService.obterHistoricoStatus(1L);
 
         // Assert
-        Assertions.assertNotNull(resultado);
-        Assertions.assertEquals("Produto Teste", resultado.getPedidoDescricao());
-        Mockito.verify(pedidoRepository, Mockito.times(1)).findById(1L);
+        assertFalse(historico.isEmpty());
+        assertEquals(1, historico.size());
     }
 
-    @Test
-    void deletarPedido_DeveDeletarPedido_SeEncontrado() {
-        // Arrange
-        Pedido pedido = new Pedido();
-        pedido.setId(1L);
 
-        Mockito.when(pedidoRepository.findById(1L)).thenReturn(Optional.of(pedido));
-
-        // Act
-        pedidoService.deletarPedido(1L);
-
-        // Assert
-        Mockito.verify(pedidoRepository, Mockito.times(1)).findById(1L);
-        Mockito.verify(pedidoRepository, Mockito.times(1)).delete(pedido);
-    }
-
-    @Test
-    void deletarPedido_DeveLancarExcecao_SePedidoNaoEncontrado() {
-        // Arrange
-        Mockito.when(pedidoRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = Assertions.assertThrows(RuntimeException.class, () -> {
-            pedidoService.deletarPedido(1L);
-        });
-
-        Assertions.assertEquals("Pedido não encontrado.", exception.getMessage());
-        Mockito.verify(pedidoRepository, Mockito.times(1)).findById(1L);
-        Mockito.verify(pedidoRepository, Mockito.never()).delete(Mockito.any(Pedido.class));
-    }
 }

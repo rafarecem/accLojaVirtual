@@ -3,100 +3,81 @@ package com.acc.Produto.Produto.servicetest;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.acc.Produto.Produto.config.RabbitMQConfigProduto;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.acc.Produto.Produto.DTO.ProdutoMessageDTO;
 import com.acc.Produto.Produto.model.Produto;
 import com.acc.Produto.Produto.repository.ProdutoRepository;
 import com.acc.Produto.Produto.service.ProdutoService;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @SpringBootTest
 public class ProdutoServiceTest {
+    @Mock
+    private ProdutoRepository produtoRepository; // Mock do repositório
 
-    @MockBean
-    private ProdutoRepository produtoRepository;
+    @Mock
+    private RabbitTemplate rabbitTemplate; // Mock do RabbitTemplate
 
-    @MockBean
-    private RabbitTemplate rabbitTemplate;
-
-    @Autowired
-    private ProdutoService produtoService;
-
-    private Produto produto;
+    @InjectMocks
+    private ProdutoService produtoService; // Classe que contém o método a ser testado
 
     @BeforeEach
     void setUp() {
-        produto = new Produto(1L, "Produto A", BigDecimal.valueOf(100), LocalDateTime.now());
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testSalvarProduto() {
-        // Configura o mock do repositório
-        when(produtoRepository.save(any(Produto.class))).thenReturn(produto);
+    void testCadastrarProduto() {
+        // Criação de um produto fictício com BigDecimal para o preço
+        Produto produto = new Produto();
+        produto.setDescricao("Produto Teste");
+        produto.setPreco(new BigDecimal("10.0"));
+        produto.setQuantidade(100);
 
-        // Chama o método de salvar
-        Produto resultado = produtoService.salvarProduto(produto);
+        // Mock do comportamento do repositório
+        Produto produtoSalvo = new Produto();
+        produtoSalvo.setId(1L);
+        produtoSalvo.setDescricao(produto.getDescricao());
+        produtoSalvo.setPreco(produto.getPreco());
+        produtoSalvo.setQuantidade(produto.getQuantidade());
+        produtoSalvo.setDataHoraEntrada(LocalDateTime.now());
 
-        // Verifica se o produto foi salvo corretamente
-        assertNotNull(resultado);
-        assertEquals("Produto A", resultado.getDescricao());
-        assertEquals(BigDecimal.valueOf(100), resultado.getPreco());
+        when(produtoRepository.save(any(Produto.class))).thenReturn(produtoSalvo);
 
-        // Verifica se o RabbitTemplate foi chamado
-        verify(rabbitTemplate, times(1)).convertAndSend(eq(RabbitMQConfigProduto.EXCHANGE_PRODUTOS), eq("rotaEstoque"), eq(produto.getId()));
+        // Mock do comportamento do RabbitTemplate
+        doNothing().when(rabbitTemplate).convertAndSend(eq("produtoQueue"), any(ProdutoMessageDTO.class));
+
+        // Chamada ao método que estamos testando
+        Produto resultado = produtoService.cadastrarProduto(produto);
+
+        // Verificações
+        assertNotNull(resultado, "O produto salvo não pode ser nulo.");
+        assertEquals(1L, resultado.getId(), "O ID do produto não está correto.");
+        assertEquals("Produto Teste", resultado.getDescricao(), "A descrição do produto não está correta.");
+        assertEquals(new BigDecimal("10.0"), resultado.getPreco(), "O preço do produto não está correto.");
+        assertEquals(100, resultado.getQuantidade(), "A quantidade do produto não está correta.");
+
+        // Verifica se a mensagem foi enviada para a fila correta
+        verify(rabbitTemplate, times(1)).convertAndSend(eq("produtoQueue"), any(ProdutoMessageDTO.class));
     }
 
     @Test
-    public void testListarProdutos() {
-        // Configura o mock para retornar uma lista de produtos
-        when(produtoRepository.findAll()).thenReturn(List.of(produto));
+    void testCadastrarProduto_comDadosInvalidos() {
+        // Criar um produto com dados inválidos (exemplo, preço negativo)
+        Produto produto = new Produto();
+        produto.setDescricao("Produto Invalido");
+        produto.setPreco(new BigDecimal("-10.0")); // Preço inválido
+        produto.setQuantidade(0); // Quantidade inválida
 
-        // Chama o método de listar
-        List<Produto> produtos = produtoService.listarProdutos();
-
-        // Verifica se a lista não está vazia e contém o produto esperado
-        assertFalse(produtos.isEmpty());
-        assertEquals(1, produtos.size());
-        assertEquals("Produto A", produtos.get(0).getDescricao());
+        // Espera que o método lance uma IllegalArgumentException
+        assertThrows(IllegalArgumentException.class, () -> produtoService.cadastrarProduto(produto),
+                "Produto inválido: preço ou quantidade não podem ser negativos ou zero.");
     }
 
-    @Test
-    public void testBuscarProdutoPorId() {
-        // Configura o mock para retornar um produto
-        when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
-
-        // Chama o método de buscar
-        Produto resultado = produtoService.buscarProdutoPorId(1L);
-
-        // Verifica se o produto retornado é o esperado
-        assertNotNull(resultado);
-        assertEquals("Produto A", resultado.getDescricao());
-    }
-
-    @Test
-    public void testBuscarProdutoPorIdNaoEncontrado() {
-        // Configura o mock para retornar um produto vazio
-        when(produtoRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // Chama o método de buscar e verifica se a exceção é lançada
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            produtoService.buscarProdutoPorId(1L);
-        });
-
-        // Verifica a mensagem da exceção
-        assertEquals("Produto não encontrado", exception.getMessage());
-    }
 }

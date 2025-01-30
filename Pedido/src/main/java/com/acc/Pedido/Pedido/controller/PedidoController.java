@@ -1,47 +1,53 @@
 package com.acc.Pedido.Pedido.controller;
 
-import com.acc.Pedido.Pedido.dto.PedidoDTO;
+import com.acc.Pedido.Pedido.model.HistoricoStatus;
+import com.acc.Pedido.Pedido.model.Pedido;
+
 import com.acc.Pedido.Pedido.service.PedidoService;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+
 @RestController
-@RequestMapping("/pedido")
+@CrossOrigin(origins = "http://localhost:8090")
+@RequestMapping("/pedidos")
+@Tag(name = "Pedido", description = "Gerenciamento de pedidos")
 public class PedidoController {
+
     @Autowired
     private PedidoService pedidoService;
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
-
-    private static final String EXCHANGE = "pedido-exchange-grupo6";
-    private static final String ROUTING_KEY = "pedido-queue-grupo6";
-
-    @PostMapping("/criar")
-    public PedidoDTO criarPedido(@RequestBody PedidoDTO pedidoDTO) {
-        PedidoDTO pedidoCriado = pedidoService.criarPedido(pedidoDTO);
-
-        // Enviar mensagem para a fila RabbitMQ
-        rabbitTemplate.convertAndSend(EXCHANGE, ROUTING_KEY, pedidoCriado);
-        return pedidoCriado;
+    @PostMapping
+    @Operation(summary = "Criar um novo pedido", description = "Cria um novo pedido e envia para processamento")
+    public Pedido criarPedido(@RequestBody Pedido pedido) {
+        return pedidoService.criarPedido(pedido);
     }
 
-    @GetMapping("/{id}")
-    public PedidoDTO buscarPedido(@PathVariable Long id) {
-        return pedidoService.buscarPedido(id);
+    @GetMapping
+    @Operation(summary = "Listar todos os pedidos", description = "Retorna uma lista de todos os pedidos")
+    public List<Pedido> listarPedidos() {
+        return pedidoService.listarPedidos();
     }
 
-    @PutMapping("/{id}")
-    public PedidoDTO editarPedido(@PathVariable Long id, @RequestBody PedidoDTO pedidoDTO) {
-        return pedidoService.editarPedido(id, pedidoDTO);
-    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarPedido(@PathVariable Long id) {
-        pedidoService.deletarPedido(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{idPedido}")
+    @Operation(summary = "Buscar um pedido por ID", description = "Retorna os detalhes de um pedido específico")
+    public Pedido buscarPedidoPorId(@PathVariable Long idPedido) {
+        return pedidoService.buscarPedidoPorId(idPedido);
     }
-
+/*
+    @GetMapping("/{pedidoId}/historico-status")
+    public ResponseEntity<List<HistoricoStatus>> obterHistoricoStatus(@PathVariable Long pedidoId) {
+        List<HistoricoStatus> historico = pedidoService.obterHistoricoStatus(pedidoId);
+        return ResponseEntity.ok(historico);
+    }
+    */
 
 }

@@ -1,87 +1,78 @@
 package com.acc.Pedido.Pedido.model;
+import com.acc.Pedido.Pedido.Enum.StatusPedido;
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "pedido")
+@Data
 public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     @Column(nullable = false)
-    private String produtoNome;
-
-    @Column(nullable = false, length = 45)
-    private String pedidoDescricao;
-
+    private Long idPedido;
     @Column(nullable = false)
-    private Double pedidoValor;
-
+    private Long idProduto;
     @Column(nullable = false)
-    private Integer pedidoQuantidade;
-
+    private int quantidade;
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LocalDateTime pedidoDataHora;
-
+    private StatusPedido status;
     @Column(nullable = false)
-    private Long vendedor_idVendedor;
+    private LocalDateTime dataHoraPedido;
+    @Column(nullable = false)
+    private Long idVendedor;
 
-    // Getters e Setters
-    public Long getId() {
-        return id;
+    public Long getIdPedido() {
+        return idPedido;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setidPedido(Long idPedido) {
+        this.idPedido = idPedido;
     }
 
-    public String getPedidoDescricao() {
-        return pedidoDescricao;
+    public Long getIdProduto() {
+        return idProduto;
     }
 
-    public void setPedidoDescricao(String pedidoDescricao) {
-        if (pedidoDescricao == null || pedidoDescricao.isEmpty()) {
-            throw new IllegalArgumentException("A descrição do pedido não pode estar vazia.");
-        }
-        this.pedidoDescricao = pedidoDescricao;
+    public void setIdProduto(Long idProduto) {
+        this.idProduto = idProduto;
     }
 
-    public Double getPedidoValor() {
-        return pedidoValor;
+    public int getQuantidade() {
+        return quantidade;
     }
 
-    public void setPedidoValor(Double pedidoValor) {
-        this.pedidoValor = pedidoValor;
+    public void setQuantidade(int quantidade) {
+        this.quantidade = quantidade;
     }
 
-    public Integer getPedidoQuantidade() {
-        return pedidoQuantidade;
+    public StatusPedido getStatus() {
+        return status;
     }
 
-    public String getProdutoNome(){
-        return produtoNome;
+    public void setStatus(StatusPedido status) {
+        this.status = status;
     }
 
-    public void setProdutoNome(String produtoNome){
-        this.produtoNome=produtoNome;
+    public LocalDateTime getDataHoraPedido() {
+        return dataHoraPedido;
     }
 
-    public void setPedidoQuantidade(Integer pedidoQuantidade) {
-        this.pedidoQuantidade = pedidoQuantidade;
+    public void setDataHoraPedido(LocalDateTime dataHoraPedido) {
+        this.dataHoraPedido = dataHoraPedido;
     }
 
-    public LocalDateTime getPedidoDataHora() {
-        return pedidoDataHora;
+    public Long getidVendedor() {
+        return idVendedor;
     }
 
-    public void setPedidoDataHora(LocalDateTime pedidoDataHora) {
-        this.pedidoDataHora = pedidoDataHora;
+    public void setidVendedor(Long idVendedor) {
+        this.idVendedor = idVendedor;
     }
 
-    public Long getVendedor_idVendedor() {
-        return vendedor_idVendedor;
-    }
-
-    public void setVendedor_idVendedor(Long vendedor_idVendedor) {
-        this.vendedor_idVendedor = vendedor_idVendedor;
-    }
 }

@@ -1,5 +1,10 @@
 package com.acc.Pedido.Pedido.Enum;
 
 public enum StatusPedido {
-    PENDENTE , CONFIRMADO , REJEITADO , CANCELADO;
+    PENDENTE,
+    AGUARDANDO_PAGAMENTO,
+    CANCELADO,
+    CONCLUIDO
+
+
 }

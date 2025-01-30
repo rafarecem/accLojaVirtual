@@ -6,31 +6,20 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "pedido_historico_status")
-public class PedidoHistoricoStatus {
+@Table(name = "historicoStatus")
+public class HistoricoStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
     private Long id;
-
     @ManyToOne
-    @JoinColumn(name = "pedido_id", nullable = false)
+    @JoinColumn(name = "pedido_id")
     private Pedido pedido;
-
+    @Column
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private StatusPedido status;
-
-    @Column(nullable = false)
-    private LocalDateTime dataHoraStatusPedido;
-
-    // Construtores
-    public PedidoHistoricoStatus() {}
-
-    public PedidoHistoricoStatus(Pedido pedido, StatusPedido status) {
-        this.pedido = pedido;
-        this.status = status;
-        this.dataHoraStatusPedido = LocalDateTime.now();
-    }
+    @Column
+    private LocalDateTime dataAlteracao;
 
     public Long getId() {
         return id;
@@ -56,11 +45,11 @@ public class PedidoHistoricoStatus {
         this.status = status;
     }
 
-    public LocalDateTime getDataHoraStatusPedido() {
-        return dataHoraStatusPedido;
+    public LocalDateTime getDataAlteracao() {
+        return dataAlteracao;
     }
 
-    public void setDataHoraStatusPedido(LocalDateTime dataHoraStatusPedido) {
-        this.dataHoraStatusPedido = dataHoraStatusPedido;
+    public void setDataAlteracao(LocalDateTime dataAlteracao) {
+        this.dataAlteracao = dataAlteracao;
     }
 }

@@ -1,15 +1,17 @@
 package com.acc.Pedido.Pedido.dto;
+
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
 public class PedidoDTO implements Serializable {
     private Long idPedido;
     private String pedidoDescricao;
     private Double pedidoValor;
     private Integer pedidoQuantidade;
     private LocalDateTime pedidoDataHora;
-    private Long vendedor_idVendedor;
+    private Long idVendedor;
 
-    // Getters e Setters
     public Long getIdPedido() {
         return idPedido;
     }
@@ -50,11 +52,11 @@ public class PedidoDTO implements Serializable {
         this.pedidoDataHora = pedidoDataHora;
     }
 
-    public Long getVendedor_idVendedor() {
-        return vendedor_idVendedor;
+    public Long getIdVendedor() {
+        return idVendedor;
     }
 
-    public void setVendedor_idVendedor(Long vendedor_idVendedor) {
-        this.vendedor_idVendedor = vendedor_idVendedor;
+    public void setIdVendedor(Long idVendedor) {
+        this.idVendedor = idVendedor;
     }
 }
