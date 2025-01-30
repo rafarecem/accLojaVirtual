@@ -3,8 +3,13 @@ package com.acc.Pagamento.Pagamento.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
+import java.io.Serializable;
+
 @Entity
-public class Pagamento {
+public class Pagamento implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @Id
     private long id;
     private String idPedido;
