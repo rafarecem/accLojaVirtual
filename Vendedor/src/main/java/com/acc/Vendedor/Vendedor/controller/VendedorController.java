@@ -1,47 +1,40 @@
 package com.acc.Vendedor.Vendedor.controller;
 
-
-import com.acc.Vendedor.Vendedor.dto.VendedorDTO;
-import com.acc.Vendedor.Vendedor.model.Vendedor;
+import com.acc.Vendedor.Vendedor.dto.VendedorRequest;
+import com.acc.Vendedor.Vendedor.dto.VendedorResponse;
 import com.acc.Vendedor.Vendedor.service.VendedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
-@RequestMapping("/vendedores")
+@RequestMapping("/v1/vendedores")
 public class VendedorController {
 
     @Autowired
     private VendedorService vendedorService;
 
     @PostMapping
-    public ResponseEntity<VendedorDTO> createVendedor(@RequestBody VendedorDTO vendedorDTO) {
-        VendedorDTO createdVendedor = vendedorService.saveVendedor(vendedorDTO);
-        return new ResponseEntity<>(createdVendedor, HttpStatus.CREATED);
+    @ResponseStatus(HttpStatus.CREATED)
+    public VendedorResponse criarVendedor(@RequestBody VendedorRequest vendedorRequest) {
+        return vendedorService.criarVendedor(vendedorRequest);
     }
 
-    @GetMapping
-    public List<Vendedor> getAllVendedores() {
-        return vendedorService.getAllVendedores();
+    @GetMapping("/{idVendedor}")
+    public VendedorResponse obterVendedor(@PathVariable Integer idVendedor) {
+        return vendedorService.obterVendedorPorId(idVendedor);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<VendedorDTO> getVendedorById(@PathVariable int id) {
-        VendedorDTO vendedorDTO = vendedorService.getVendedorById(id);
-        if (vendedorDTO != null) {
-            return new ResponseEntity<>(vendedorDTO, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @PutMapping("/{id}")
+    public ResponseEntity<VendedorResponse> atualizarVendedor(@PathVariable Integer id, @RequestBody VendedorRequest vendedorRequest) {
+        VendedorResponse vendedorResponse = vendedorService.atualizarVendedor(id, vendedorRequest);
+        return ResponseEntity.ok(vendedorResponse);
     }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteVendedor(@PathVariable int id) {
-        vendedorService.deleteVendedor(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> deletarVendedor(@PathVariable Integer id) {
+        vendedorService.deletarVendedor(id);
+        return ResponseEntity.noContent().build();
     }
 }
-

@@ -1,17 +1,25 @@
 package com.acc.Vendedor.Vendedor.dto;
 
-public class VendedorDTO {
-
-    private int idVendedor;
+public class VendedorRequest {
+    private String vendedorNome;
+    private String vendedorSetor;
     private String nomeVendedor;
     private String setorVendedor;
 
-    public int getIdVendedor() {
-        return idVendedor;
+    public String getVendedorNome() {
+        return vendedorNome;
     }
 
-    public void setIdVendedor(int idVendedor) {
-        this.idVendedor = idVendedor;
+    public void setVendedorNome(String vendedorNome) {
+        this.vendedorNome = vendedorNome;
+    }
+
+    public String getVendedorSetor() {
+        return vendedorSetor;
+    }
+
+    public void setVendedorSetor(String vendedorSetor) {
+        this.vendedorSetor = vendedorSetor;
     }
 
     public String getNomeVendedor() {
@@ -29,4 +37,4 @@ public class VendedorDTO {
     public void setSetorVendedor(String setorVendedor) {
         this.setorVendedor = setorVendedor;
     }
-}
+    }
