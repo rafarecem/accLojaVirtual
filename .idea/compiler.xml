@@ -22,11 +22,13 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="Estoque" />
-        <module name="Envio" />
         <module name="Vendedor" />
         <module name="Pedido" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Envio" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
