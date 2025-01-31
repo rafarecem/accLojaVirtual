@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="NotificacaoProducer" />
+        <module name="Pagamento" />
         <module name="Autenticacao" />
         <module name="gateway" />
         <module name="Server-discovery" />
@@ -20,7 +21,6 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
-        <module name="Pagamento" />
         <module name="Estoque" />
         <module name="Envio" />
         <module name="Vendedor" />

@@ -1,0 +1,7 @@
+spring:
+  rabbitmq:
+    host: rabbitmq.tericcabrel.com
+    username: admin
+    password: MyStrong-P4ssw0rd$
+    port: 5672
+    virtual-host: /
