@@ -13,8 +13,8 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("API Documentation")
+                        .title("API documentacao")
                         .version("1.0")
-                        .description("Documentação da API usando SpringDoc OpenAPI"));
+                        .description("Loja online para a accenture"));
     }
 }
